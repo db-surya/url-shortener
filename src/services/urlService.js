@@ -32,12 +32,23 @@ const shortenUrl = async (longUrl, customAlias, topic) => {
   const savedUrl = await urlRepository.saveUrlData(newUrlData);
 
   return {
-    longUrl: savedUrl.longUrl,
+    createdAt: savedUrl.createdAt,
     shortUrl: `${config.baseUrl}/api/shorten/${savedUrl.shortUrl}`,
-    topic: savedUrl.topic,
   };
+};
+
+const redirectShortUrl = async (customAlias) => {
+  // Query the database to find the URL corresponding to the short code
+  const existingUrl = await urlRepository.findByShortCode(customAlias);
+  // If URL not found, throw a specific error
+  if (!existingUrl) {
+    throw new Error('URL not found');
+  }
+  // If URL is found, return the long URL
+  return existingUrl.longUrl;
 };
 
 module.exports = {
   shortenUrl,
+  redirectShortUrl
 };
