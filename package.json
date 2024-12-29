@@ -11,6 +11,9 @@
   "dependencies": {
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "mongoose": "^8.9.2"
+    "geoip-lite": "^1.4.10",
+    "lodash": "^4.17.21",
+    "mongoose": "^8.9.2",
+    "node-device-detector": "^2.1.6"
   }
 }

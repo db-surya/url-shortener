@@ -1,7 +1,9 @@
 const urlRepository = require('../data-access/urlData');
 const counterRepository = require('../data-access/counterData');
-const { generateShortUrl } = require('../utils/helpers');
+const redirectLogRepository = require('../data-access/redirectLogData');
+const { generateShortUrl, getuserAgentDetails } = require('../utils/helpers');
 const config = require('../config/config');
+
 
 const shortenUrl = async (longUrl, customAlias, topic) => {
   if (!longUrl) {
@@ -37,13 +39,35 @@ const shortenUrl = async (longUrl, customAlias, topic) => {
   };
 };
 
-const redirectShortUrl = async (customAlias) => {
+const redirectShortUrl = async (customAlias, userAgent, username, ipAddress) => {
   // Query the database to find the URL corresponding to the short code
   const existingUrl = await urlRepository.findByShortCode(customAlias);
-  // If URL not found, throw a specific error
+  //Device and os details
+  const { osType, deviceType, geoLocation } = getuserAgentDetails(userAgent,ipAddress);
+  console.log('The os type',osType);
+  console.log('The device type',deviceType);
+
+  //If not exists throw url not found error
   if (!existingUrl) {
     throw new Error('URL not found');
   }
+
+  //Construct alias and topic from existing url
+  const alias = existingUrl.shortUrl;
+  const topic = existingUrl.topic;
+
+  //Make entry to redirect log url
+  const logData = {
+    alias,
+    topic,
+    username,
+    ipAddress,
+    geoLocation,
+    osType,
+    deviceType,
+  };
+
+  await redirectLogRepository.saveRedirectLog(logData);
   // If URL is found, return the long URL
   return existingUrl.longUrl;
 };

@@ -13,6 +13,9 @@ const app =  express();
 //Connect to the database
 connectDB();
 
+//Enable trust proxy to get the true client ip
+app.set('trust proxy', true);
+
 // Middlewares
 app.use(express.json());
 

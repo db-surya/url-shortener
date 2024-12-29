@@ -13,8 +13,12 @@ const shortenUrl = async (req, res, next) => {
 const redirectShortUrl = async (req, res, next) => {
   try {
     const customAlias = req.params.alias; // Get custom alias from the URL parameter
+    const userAgent = req.headers['user-agent'];  //Getting the user agent
+    const username = "virat";
+    console.log('The ip request came here ?????',req.ip);
+    const ipAddress = req.ip === '::1' ? '8.8.8.8' : req.ip;
     // Call the service to get the long URL for the short code
-    const longUrl = await urlService.redirectShortUrl(customAlias);
+    const longUrl = await urlService.redirectShortUrl(customAlias, userAgent,username,ipAddress);
     // Redirect the user to the long URL
     res.redirect(longUrl);  // Performs the actual redirection
   } catch (error) {
