@@ -5,7 +5,7 @@ const { generateShortUrl, getuserAgentDetails } = require('../utils/helpers');
 const config = require('../config/config');
 
 
-const shortenUrl = async (longUrl, customAlias, topic) => {
+const shortenUrlService = async (longUrl, customAlias, topic) => {
   if (!longUrl) {
     throw new Error('Long URL is required.');
   }
@@ -39,7 +39,7 @@ const shortenUrl = async (longUrl, customAlias, topic) => {
   };
 };
 
-const redirectShortUrl = async (customAlias, userAgent, username, ipAddress) => {
+const redirectShortUrlService = async (customAlias, userAgent, username, ipAddress) => {
   // Query the database to find the URL corresponding to the short code
   const existingUrl = await urlRepository.findByShortCode(customAlias);
   //Device and os details
@@ -73,6 +73,6 @@ const redirectShortUrl = async (customAlias, userAgent, username, ipAddress) => 
 };
 
 module.exports = {
-  shortenUrl,
-  redirectShortUrl
+  shortenUrlService,
+  redirectShortUrlService
 };

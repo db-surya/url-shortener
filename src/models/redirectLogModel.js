@@ -16,7 +16,7 @@ const redirectLogSchema = new mongoose.Schema({
   deviceType: { type: String }, // Device type (e.g., mobile, desktop, etc.)
 });
 
-const RedirectLog = mongoose.model('RedirectLog', redirectLogSchema);
+const RedirectLogModel = mongoose.model('RedirectLog', redirectLogSchema);
 
-module.exports = RedirectLog;
+module.exports = RedirectLogModel;
 
