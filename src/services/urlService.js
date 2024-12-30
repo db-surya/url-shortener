@@ -3,7 +3,7 @@ const counterRepository = require('../data-access/counterData');
 const redirectLogRepository = require('../data-access/redirectLogData');
 const { generateShortUrl, getuserAgentDetails } = require('../utils/helpers');
 const config = require('../config/config');
-
+const redisUtils = require('../utils/redisUtils');
 
 const shortenUrlService = async (longUrl, customAlias, topic) => {
   if (!longUrl) {
@@ -19,11 +19,11 @@ const shortenUrlService = async (longUrl, customAlias, topic) => {
     }
     shortCode = customAlias;
   } else {
-    // Get the next counter value and generate a short code using Base62 encoding
     const counterValue = await counterRepository.getNextCounterValue('urlCounter');
     shortCode = generateShortUrl(counterValue);
   }
-  console.log('The short code generated here <<<<<',shortCode);
+  console.log('The short code generated here <<<<<', shortCode);
+
   const newUrlData = {
     longUrl,
     shortUrl: shortCode,
@@ -33,6 +33,10 @@ const shortenUrlService = async (longUrl, customAlias, topic) => {
 
   const savedUrl = await urlRepository.saveUrlData(newUrlData);
 
+  // Save to Redis
+  const redisKey = `shortUrl:${shortCode}`;
+  await redisUtils.setRedisCache(redisKey, { longUrl, topic });
+
   return {
     createdAt: savedUrl.createdAt,
     shortUrl: `${config.baseUrl}/api/shorten/${savedUrl.shortUrl}`,
@@ -40,23 +44,29 @@ const shortenUrlService = async (longUrl, customAlias, topic) => {
 };
 
 const redirectShortUrlService = async (customAlias, userAgent, username, ipAddress) => {
-  // Query the database to find the URL corresponding to the short code
-  const existingUrl = await urlRepository.findByShortCode(customAlias);
-  //Device and os details
-  const { osType, deviceType, geoLocation } = getuserAgentDetails(userAgent,ipAddress);
-  console.log('The os type',osType);
-  console.log('The device type',deviceType);
+  const redisKey = `shortUrl:${customAlias}`;
+  let existingUrl = await redisUtils.getRedisCache(redisKey);
 
-  //If not exists throw url not found error
   if (!existingUrl) {
-    throw new Error('URL not found');
+    // Not in Redis, fetch from DB
+    existingUrl = await urlRepository.findByShortCode(customAlias);
+    if (!existingUrl) {
+      throw new Error('URL not found');
+    }
+    // Store in Redis
+    await redisUtils.setRedisCache(redisKey, {
+      longUrl: existingUrl.longUrl,
+      topic: existingUrl.topic,
+    });
   }
 
-  //Construct alias and topic from existing url
-  const alias = existingUrl.shortUrl;
+  const { osType, deviceType, geoLocation } = getuserAgentDetails(userAgent, ipAddress);
+  console.log('The os type', osType);
+  console.log('The device type', deviceType);
+
+  const alias = existingUrl.shortUrl || customAlias;
   const topic = existingUrl.topic;
 
-  //Make entry to redirect log url
   const logData = {
     alias,
     topic,
@@ -68,7 +78,7 @@ const redirectShortUrlService = async (customAlias, userAgent, username, ipAddre
   };
 
   await redirectLogRepository.saveRedirectLog(logData);
-  // If URL is found, return the long URL
+
   return existingUrl.longUrl;
 };
 

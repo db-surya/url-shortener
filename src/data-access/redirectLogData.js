@@ -7,7 +7,7 @@ const RedirectLogModel = require('../models/redirectLogModel'); // Assuming the 
  */
 const saveRedirectLog = async (logData) => {
   try {
-    return await RedirectLog.create(logData);
+    return await RedirectLogModel.create(logData);
   } catch (error) {
     throw new Error(`Error saving redirect log: ${error.message}`);
   }
