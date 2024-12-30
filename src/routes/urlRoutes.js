@@ -37,21 +37,21 @@ router.get('/auth/failure',(req,res)=>{
 
 //Api to shorten url
 router.post(
-  '/shorten', 
+  '/api/shorten', 
   authUtils.isLoggedIn,
   urlController.shortenUrlController
 );
 
 //API to get the shortened url
 router.get(
-  '/shorten/:alias', 
+  '/api/shorten/:alias', 
   authUtils.isLoggedIn,
   urlController.redirectShortUrlController
 );
 
 //API to get overall analytics
 router.get(
-  '/analytics/overall',
+  '/api/analytics/overall',
   authUtils.isLoggedIn,
   analyticsController.getOverallAnalyticsController
 );
@@ -59,7 +59,7 @@ router.get(
 
 //API to get analytics by topic
 router.get(
-  '/analytics/topic/:topic',
+  '/api/analytics/topic/:topic',
   authUtils.isLoggedIn,
   analyticsController.getAnalyticsByTopicController
 );
@@ -67,7 +67,7 @@ router.get(
 
 //API to get analytics by alias
 router.get(
-  '/analytics/:alias', 
+  '/api/analytics/:alias', 
   authUtils.isLoggedIn,
   analyticsController.getAnalyticsByAliasController
 );

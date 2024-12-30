@@ -172,108 +172,102 @@ const getPipelineByTopic = (topic) =>{
 
 const getOverallPipeline = () =>{
   const pipeline = [
-    { $match: {} }, // Filter by authenticated user ID
     {
-      $group: {
-        _id: {
-          alias: '$alias', // Group by short URL alias
-          date: { $dateToString: { format: '%Y-%m-%d', date: '$timestamp' } }, // Group by date
-        },
-        clickCount: { $sum: 1 }, // Count total clicks
-        uniqueUsers: { $addToSet: '$username' }, // Collect unique usernames
-        uniqueClicks: { $addToSet: '$ipAddress' }, // Collect unique IPs
-        osTypes: { $addToSet: '$osType' }, // Collect unique osTypes
-        deviceTypes: { $addToSet: '$deviceType' }, // Collect unique deviceTypes
-      },
-    },
-    {
-      $group: {
-        _id: '$_id.date', // Group by date
-        totalClicks: { $sum: '$clickCount' }, // Total clicks for the date
-        osTypes: { $push: '$osTypes' }, // Collect osTypes for the date
-        deviceTypes: { $push: '$deviceTypes' }, // Collect deviceTypes for the date
-        uniqueUsers: { $addToSet: '$uniqueUsers' }, // Collect unique users across dates
-        uniqueClicks: { $addToSet: '$uniqueClicks' }, // Collect unique IPs across dates
-      },
-    },
-    { $sort: { _id: -1 } }, // Sort by date in descending order
-    {
-      $group: {
-        _id: null,
-        clicksByDate: {
-          $push: {
-            date: '$_id',
-            clickCount: '$totalClicks',
+      "$facet": {
+        "totalUrls": [
+          {
+            "$group": {
+              "_id": "$alias",
+              "count": { "$sum": 1 }
+            }
           },
-        },
-        osTypes: { $push: '$osTypes' }, // Aggregate OS type analytics
-        deviceTypes: { $push: '$deviceTypes' }, // Aggregate device type analytics
-        totalClicks: { $sum: '$totalClicks' }, // Total clicks across all URLs
-        uniqueUsers: { $addToSet: '$uniqueUsers' }, // Collect unique users across all dates
-        uniqueClicks: { $addToSet: '$uniqueClicks' }, // Collect unique IPs across all dates
-      },
+          {
+            "$count": "totalUrls"
+          }
+        ],
+        "totalClicks": [
+          {
+            "$count": "totalClicks"
+          }
+        ],
+        "uniqueUsers": [
+          {
+            "$group": {
+              "_id": "$ipAddress"
+            }
+          },
+          {
+            "$count": "uniqueUsers"
+          }
+        ],
+        "clicksByDate": [
+          {
+            "$group": {
+              "_id": { "$dateToString": { "format": "%Y-%m-%d", "date": "$timestamp" } },
+              "totalClicks": { "$sum": 1 }
+            }
+          },
+          {
+            "$sort": { "_id": -1 }
+          },
+          {
+            "$limit": 7
+          },
+          {
+            "$project": {
+              "date": "$_id",
+              "totalClicks": 1,
+              "_id": 0
+            }
+          }
+        ],
+        "osType": [
+          {
+            "$group": {
+              "_id": "$osType",
+              "uniqueClicks": { "$addToSet": "$ipAddress" },
+              "uniqueUsers": { "$addToSet": "$username" }
+            }
+          },
+          {
+            "$project": {
+              "osName": "$_id",
+              "uniqueClicks": { "$size": "$uniqueClicks" },
+              "uniqueUsers": { "$size": "$uniqueUsers" },
+              "_id": 0
+            }
+          }
+        ],
+        "deviceType": [
+          {
+            "$group": {
+              "_id": "$deviceType",
+              "uniqueClicks": { "$addToSet": "$ipAddress" },
+              "uniqueUsers": { "$addToSet": "$username" }
+            }
+          },
+          {
+            "$project": {
+              "deviceName": "$_id",
+              "uniqueClicks": { "$size": "$uniqueClicks" },
+              "uniqueUsers": { "$size": "$uniqueUsers" },
+              "_id": 0
+            }
+          }
+        ]
+      }
     },
     {
-      $project: {
-        _id: 0,
-        totalUrls: { $size: { $ifNull: [{ $arrayElemAt: ['$osTypes', 0] }, []] } }, // Count of unique short URLs
-        totalClicks: 1,
-        clicksByDate: 1,
-        osTypes: {
-          $map: {
-            input: { $ifNull: [{ $arrayElemAt: ['$osTypes', 0] }, []] }, // Flatten osTypes
-            as: 'os',
-            in: {
-              osName: '$$os',
-              uniqueClicks: {
-                $size: {
-                  $ifNull: [
-                    { $cond: [{ $isArray: '$$os' }, '$$os', []] },
-                    [],
-                  ], // Ensure $$os is an array before applying $size
-                },
-              },
-              uniqueUsers: {
-                $size: {
-                  $ifNull: [
-                    { $cond: [{ $isArray: '$$os' }, '$$os', []] },
-                    [],
-                  ], // Ensure $$os is an array before applying $size
-                },
-              },
-            },
-          },
-        },
-        deviceTypes: {
-          $map: {
-            input: { $ifNull: [{ $arrayElemAt: ['$deviceTypes', 0] }, []] }, // Flatten deviceTypes
-            as: 'device',
-            in: {
-              deviceName: '$$device',
-              uniqueClicks: {
-                $size: {
-                  $ifNull: [
-                    { $cond: [{ $isArray: '$$device' }, '$$device', []] },
-                    [],
-                  ], // Ensure $$device is an array before applying $size
-                },
-              },
-              uniqueUsers: {
-                $size: {
-                  $ifNull: [
-                    { $cond: [{ $isArray: '$$device' }, '$$device', []] },
-                    [],
-                  ], // Ensure $$device is an array before applying $size
-                },
-              },
-            },
-          },
-        },
-        uniqueUsers: { $size: { $ifNull: [{ $arrayElemAt: ['$uniqueUsers', 0] }, []] } }, // Count unique users across all dates
-        uniqueClicks: { $size: { $ifNull: [{ $arrayElemAt: ['$uniqueClicks', 0] }, []] } }, // Count unique IPs across all dates
-      },
-    },
-  ];
+      "$project": {
+        "totalUrls": { "$arrayElemAt": ["$totalUrls.totalUrls", 0] },
+        "totalClicks": { "$arrayElemAt": ["$totalClicks.totalClicks", 0] },
+        "uniqueUsers": { "$arrayElemAt": ["$uniqueUsers.uniqueUsers", 0] },
+        "clicksByDate": "$clicksByDate",
+        "osType": "$osType",
+        "deviceType": "$deviceType"
+      }
+    }
+  ]
   return pipeline;
 }
 
