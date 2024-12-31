@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analytics</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+    <nav class="navbar">
+      <a href="/shorten" class="nav-item">Shorten URL</a>
+      <a href="/analytics" class="nav-item">Analytics</a>
+    </nav>
+  <div class="container">
+    <h2>Analytics</h2>
+    <div>
+      <button onclick="showTopicInput()">Analytics by Topic</button>
+      <button onclick="showAliasInput()">Analytics by Alias</button>
+      <button onclick="showOverallAnalytics()">Overall Analytics</button>
+    </div>
+
+    <!-- Topic Input -->
+    <div id="topicInput" class="hidden">
+      <label for="topicField">Enter Topic</label>
+      <input type="text" id="topicField">
+      <button onclick="submitTopicAnalytics()">Submit</button>
+    </div>
+
+    <!-- Alias Input -->
+    <div id="aliasInput" class="hidden">
+      <label for="aliasField">Enter Alias</label>
+      <input type="text" id="aliasField">
+      <button onclick="submitAliasAnalytics()">Submit</button>
+    </div>
+
+    <div id="analyticsResult">
+      <pre id="resultBox"></pre>
+    </div>
+  </div>
+</body>
+<script src="/js/main.js"></script>
+
+</html>

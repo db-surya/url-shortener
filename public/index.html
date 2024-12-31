@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>URL Shortener</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body class="bg-dark text-white">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">URL Shortener</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a id="login-link" class="nav-link text-warning" href="/auth/google">Login with Google</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <nav class="navbar">
+    <a href="/shorten" class="nav-item">Shorten URL</a>
+    <a href="/analytics" class="nav-item">Analytics</a>
+  </nav>
+
+  <div class="container text-center mt-5">
+    <h1>Welcome to the URL Shortener!</h1>
+    <p class="lead" id="welcome-text">Please login to start using the application.</p>
+    <!-- Added Google Login Button -->
+    <a href="/auth/google" class="btn btn-warning btn-lg mt-3">Sign in with Google</a>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Dynamically update UI if the user is authenticated
+    const isAuthenticated = '<%= isAuthenticated %>'; // Server-side rendering placeholder
+    const loginLink = document.getElementById('login-link');
+    const welcomeText = document.getElementById('welcome-text');
+
+    if (isAuthenticated === 'true') {
+      loginLink.style.display = 'none';
+      welcomeText.innerHTML = 'Use the navigation bar to create shortened URLs or view analytics.';
+      const navbar = document.querySelector('.navbar-nav');
+      navbar.innerHTML += `
+        <li class="nav-item">
+          <a class="nav-link active" href="/shorten">Shorten URL</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/analytics">Analytics</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-warning" href="/logout">Logout</a>
+        </li>
+      `;
+    }
+  </script>
+</body>
+
+</html>

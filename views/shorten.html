@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shorten URL</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+    <nav class="navbar">
+      <a href="/shorten" class="nav-item">Shorten URL</a>
+      <a href="/analytics" class="nav-item">Analytics</a>
+    </nav>
+  <div class="container">
+    <h2>Shorten URL</h2>
+    <form id="shortenForm">
+      <label for="longUrl">Long URL</label>
+      <input type="url" id="longUrl" name="longUrl" required>
+      <label for="topic">Topic</label>
+      <input type="text" id="topic" name="topic" required>
+      <label for="alias">Alias (Optional)</label>
+      <input type="text" id="alias" name="alias">
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+    <div id="resultBox" class="result-box hidden">
+      <h3>Shortened URL:</h3>
+      <p id="shortenedUrl"></p>
+    </div>
+  </div>
+  <script src="/js/main.js" defer></script>
+</body>
+
+</html>

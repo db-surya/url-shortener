@@ -1,78 +1,88 @@
 const express = require('express');
 const router = express.Router();
 const urlController = require('../controllers/urlController');
-const analyticsController = require('../controllers/analyticsController')
+const analyticsController = require('../controllers/analyticsController');
 const passport = require('passport');
 const authUtils = require('../utils/authUtils');
+const path = require('path');
 
+// Serve index.html with authentication status
+router.get('/', (req, res) => {
+  res.render('index', { isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : false });
+});
 
-//Health check api to check connection
-router.get('/',(req,res)=>{
-  res.send('<a href="/auth/google">Authenticate with Google</a>');
-})
-
-//Authenticate on clicking sign in with google
-router.get('/auth/google',
-  passport.authenticate('google',{scope:['email','profile']})
+// Authenticate on clicking "Sign in with Google"
+router.get(
+  '/auth/google',
+  passport.authenticate('google', { scope: ['email', 'profile'] })
 );
 
-//Success and failure redirects
-router.get('/auth/google/callback',
-  passport.authenticate('google',{
-    successRedirect:'/index',
-    failureRedirect:'/auth/failure'
+// Success and failure redirects
+router.get(
+  '/auth/google/callback',
+  passport.authenticate('google', {
+    successRedirect: '/index',
+    failureRedirect: '/auth/failure',
   })
 );
 
-//Success redirect home page
-router.get('/index', (req,res)=>{
-  console.log('The user displayed here',req.user);
-  res.send('Welcome to home page');
+// Success redirect to the home page
+router.get('/index', authUtils.isLoggedIn, (req, res) => {
+  res.sendFile(path.join(__dirname, '../../views/index.html'));
 });
 
-//Failure login
-router.get('/auth/failure',(req,res)=>{
-  res.send('Something went wrong');
-})
+// Failure login
+router.get('/auth/failure', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../views/home.html'));
+});
 
-//Api to shorten url
+// Route to serve the Shorten URL page
+router.get('/shorten', authUtils.isLoggedIn, (req, res) => {
+  res.sendFile(path.join(__dirname, '../../views/shorten.html'));
+});
+
+
+// Page for analytics
+router.get('/analytics', authUtils.isLoggedIn, (req, res) => {
+  res.sendFile(path.join(__dirname, '../../views/analytics.html'));
+});
+
+// API to shorten URL
 router.post(
-  '/api/shorten', 
+  '/api/shorten',
   authUtils.isLoggedIn,
   urlController.shortenUrlController
 );
 
-//API to get the shortened url
+// API to get the shortened URL
 router.get(
-  '/api/shorten/:alias', 
+  '/api/shorten/:alias',
   authUtils.isLoggedIn,
   urlController.redirectShortUrlController
 );
 
-//API to get overall analytics
+// API to get overall analytics
 router.get(
   '/api/analytics/overall',
   authUtils.isLoggedIn,
   analyticsController.getOverallAnalyticsController
 );
 
-
-//API to get analytics by topic
+// API to get analytics by topic
 router.get(
   '/api/analytics/topic/:topic',
   authUtils.isLoggedIn,
   analyticsController.getAnalyticsByTopicController
 );
 
-
-//API to get analytics by alias
+// API to get analytics by alias
 router.get(
-  '/api/analytics/:alias', 
+  '/api/analytics/:alias',
   authUtils.isLoggedIn,
   analyticsController.getAnalyticsByAliasController
 );
 
-//Logout route
+// Logout route
 router.get('/logout', (req, res, next) => {
   req.logout((err) => {
     if (err) {
@@ -82,10 +92,9 @@ router.get('/logout', (req, res, next) => {
       if (err) {
         return next(err); // Handle session destruction error
       }
-      res.send('Good bye!');
+      res.sendFile(path.join(__dirname, '../../views/home.html'));
     });
   });
 });
-
 
 module.exports = router;
