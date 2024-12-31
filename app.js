@@ -6,6 +6,8 @@ const urlRoutes = require('./src/routes/urlRoutes');
 const connectDB = require('./src/config/db');
 const passport = require('passport');
 const path = require('path');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./public/swagger/swaggerDefinition');
 
 //Load environment variables
 dotenv.config();
@@ -41,6 +43,8 @@ app.use((req, res, next) => {
   next();
 });
 
+//Swagger
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Routes
 app.use('/', urlRoutes);

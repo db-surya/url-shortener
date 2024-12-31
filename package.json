@@ -18,6 +18,8 @@
     "node-device-detector": "^2.1.6",
     "passport": "^0.7.0",
     "passport-google-oauth2": "^0.2.0",
-    "redis": "^4.7.0"
+    "redis": "^4.7.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   }
 }
